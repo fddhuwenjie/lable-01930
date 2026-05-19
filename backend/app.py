@@ -39,7 +39,11 @@ def load_model():
     model = URLClassifier(input_dim=input_dim)
     
     if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location=device))
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            model.load_state_dict(checkpoint)
         print(f"模型已加载: {model_path}")
     else:
         print("警告: 未找到预训练模型，使用随机初始化权重")
@@ -149,7 +153,7 @@ def train_model():
     """触发模型训练"""
     try:
         from trainer import main as train_main
-        trainer = train_main()
+        trainer = train_main(args=[])
         
         # 重新加载模型
         load_model()
